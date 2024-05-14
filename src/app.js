@@ -15,9 +15,15 @@ app.use(exporess.urlencoded({extended:true,limit:"16kb"}))
 app.use(exporess.static("public"))
 app.use(cookieParser())
 
-app.get("/",(req,res)=>{
-    res.send("bacekend")
-})
+// app.get("/",(req,res)=>{
+//     res.send("bacekend")
+// })
+
+//imports  routes 
+import userRoute from "./routes/user.route.js"
+//routes declare here
+
+app.use("/api/v1/users",userRoute)
 
 
 export {app}

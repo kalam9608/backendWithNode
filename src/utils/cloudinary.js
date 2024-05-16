@@ -15,7 +15,9 @@ const uploadFileCloudinary=async (filepath)=>{
 
        const response=await cloudinary.uploader.upload(filepath,{resource_type:"auto"})
 
-        console.log("file uplaod in successfully")
+        // console.log("file uplaod in successfully")
+
+        fs.unlinkSync(filepath);  //clear the storage
         
         return response
     } catch (error) {
@@ -23,7 +25,7 @@ const uploadFileCloudinary=async (filepath)=>{
     }
 }
 
-export {cloudinary}
+export {uploadFileCloudinary}
 
 // cloudinary.uploader.upload("https://upload.wikimedia.org/wikipedia/commons/a/ae/Olympic_flag.jpg",
 //   { public_id: "olympic_flag" }, 

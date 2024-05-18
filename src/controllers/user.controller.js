@@ -9,9 +9,9 @@ const genrateAccessAndRefreshToken = async (userId) => {
     const user = await User.findById(userId);
     const accessToken = user.genrateAccessToken();
     const refreshToken = user.genrateRefreshToken();
-
-    // save the refresh token in the data base
+    
     user.refreshToken = refreshToken;
+
     await user.save({ validateBeforeSave: false });
     return { accessToken, refreshToken };
   } catch (error) {
@@ -110,31 +110,44 @@ const login = asyncHandler(async (req, res) => {
 
   const { email, userName, password } = req.body;
 
-  if (!userName || !email) {
+  // if (!(userName || email)) {
+  //   return res.status(400).send({
+  //     message: "email or user name  is required",
+  //   });
+  // }
+
+
+  if (!userName && !email) {
     return res.status(400).send({
       message: "email or user name  is required",
     });
   }
 
   const user = await User.findOne({
-    $or: [{ userName }, { email }],
-  });
+    $or: [{userName}, {email}]
+})
+
+
 
   if (!user) {
     return res.status(400).json({ message: "User is not register" });
   }
 
-  const isPassword = user.isPasswordCorect(password);
+  const isPassword = await user.isPasswordCorect(password);
+
 
   if (!isPassword) {
     return res.status(400).json({ message: "Invalid email or Password" });
   }
 
-  const { accessToken, refreshToken } = genrateAccessAndRefreshToken(user._id);
+  const { accessToken, refreshToken } =await genrateAccessAndRefreshToken(user._id);
+
+  console.log("ispassword===accessToken===>", accessToken,refreshToken);
+
 
   // send the response to the user
   const logedInUser = await User.findById(user._id).select(
-    "-passwoed -refreshToken",
+    "-password -refreshToken",
   );
 
   const options = {
@@ -160,7 +173,6 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const logout = asyncHandler(async (req, res) => {
-  //req.user._id
   await User.findByIdAndUpdate(
     req.user._id,
     {
@@ -185,4 +197,4 @@ const logout = asyncHandler(async (req, res) => {
     .json(200, {}, "Logout successfully");
 });
 
-export { registerUser, login,logout };
+export { registerUser, login, logout };

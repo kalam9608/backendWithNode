@@ -4,25 +4,40 @@ import { User } from "../models/user.models.js";
 import { uploadFileCloudinary } from "../utils/cloudinary.js";
 import { ErrorApi } from "../utils/ErrorApi.js";
 
+const genrateAccessAndRefreshToken = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    const accessToken = user.genrateAccessToken();
+    const refreshToken = user.genrateRefreshToken();
+
+    // save the refresh token in the data base
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+    return { accessToken, refreshToken };
+  } catch (error) {
+    return res.status(500).json({ message: "something went wrong" });
+  }
+};
+
 const registerUser = asyncHandler(async (req, res) => {
   const { userName, fullname, email, password } = req.body;
 
-  let Error="";
-  if(userName==undefined){
-    Error="User name filed is required"
-    return res.status(400).send({Error})
+  let Error = "";
+  if (userName == undefined) {
+    Error = "User name filed is required";
+    return res.status(400).send({ Error });
   }
-  if(fullname==undefined){
-    Error="fullname name filed is required"
-    return res.status(400).send({Error})
+  if (fullname == undefined) {
+    Error = "fullname name filed is required";
+    return res.status(400).send({ Error });
   }
-  if(email==undefined){
-    Error="email name filed is required"
-    return res.status(400).send({Error})
+  if (email == undefined) {
+    Error = "email name filed is required";
+    return res.status(400).send({ Error });
   }
-  if(password==undefined){
-    Error="password name filed is required"
-    return res.status(400).send({Error})
+  if (password == undefined) {
+    Error = "password name filed is required";
+    return res.status(400).send({ Error });
   }
 
   if (
@@ -85,4 +100,56 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "User created successfully"));
 });
 
-export { registerUser };
+const login = asyncHandler(async (req, res) => {
+  // get value from the user
+  // check user name or email
+  // find the user
+  // password check
+  // access and refresh token
+  // send cookie
+
+  const { email, userName, password } = req.body;
+
+  if (!userName || !email) {
+    return res.status(400).send({
+      message: "email or user name  is required",
+    });
+  }
+
+  const user = await User.findOne({
+    $or: [{ userName }, { email }],
+  });
+
+  if (!user) {
+    return res.status(400).json({ message: "User is not register" });
+  }
+
+  const isPassword = user.isPasswordCorect(password);
+
+  if (!isPassword) {
+    return res.status(400).json({ message: "Invalid email or Password" });
+  }
+
+  const { accessToken, refreshToken } = genrateAccessAndRefreshToken(user._id);
+
+  // send the response to the user
+  const logedInUser = await User.findById(user._id).select(
+    "-passwoed -refreshToken",
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res.status(200)
+  .cookie("accessToken",accessToken,options)
+  .cookie("refreshToken",refreshToken,options)
+  .json(new ApiResponse(200,{
+    user:logedInUser,
+    refreshToken,
+    accessToken
+  },"User Loged in successfully"))
+});
+
+export { registerUser, login };

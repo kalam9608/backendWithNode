@@ -22,6 +22,7 @@ const uploadFileCloudinary=async (filepath)=>{
         return response
     } catch (error) {
         fs.unlinkSync(filepath) // removed the loacal save temprory filed uplaod file got failed
+        console.log("error===>",error)
     }
 }
 

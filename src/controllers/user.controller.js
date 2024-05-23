@@ -260,6 +260,12 @@ const refresAccessToken = asyncHandler(async (req, res) => {
 const changeCurrentPasswod = asyncHandler(async (req, res) => {
 
   const { oldPassword, newPassword } = req.body;
+  console.log(oldPassword)
+
+  if (!(oldPassword && newPassword)) {
+    return res.status(400).json({ message: "all filed required" })
+
+  }
 
   const user = await User.findById(req.user?._id);
 

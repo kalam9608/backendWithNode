@@ -20,7 +20,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
       "-passwoed -refreshToken",
     );
 
-    console.log("user===token===>",user)
+    // console.log("user===token===>",user)
 
 
     if (!user) {

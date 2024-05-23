@@ -14,9 +14,14 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
 
     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
+    // console.log("decoded===token===>",decodedToken)
+
     const user = await User.findById(decodedToken?._id).select(
       "-passwoed -refreshToken",
     );
+
+    console.log("user===token===>",user)
+
 
     if (!user) {
       return res.status(401).json({ message: "invalid user token" });

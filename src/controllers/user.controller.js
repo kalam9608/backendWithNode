@@ -9,7 +9,7 @@ const genrateAccessAndRefreshToken = async (userId) => {
     const user = await User.findById(userId);
     const accessToken = user.genrateAccessToken();
     const refreshToken = user.genrateRefreshToken();
-    
+
     user.refreshToken = refreshToken;
 
     await user.save({ validateBeforeSave: false });
@@ -25,25 +25,25 @@ const registerUser = asyncHandler(async (req, res) => {
   let Error = "";
   if (userName == undefined) {
     Error = "User name filed is required";
-    return res.status(400).send({ Error });
+    return res.status(400).json({ Error });
   }
   if (fullname == undefined) {
     Error = "fullname name filed is required";
-    return res.status(400).send({ Error });
+    return res.status(400).json({ Error });
   }
   if (email == undefined) {
     Error = "email name filed is required";
-    return res.status(400).send({ Error });
+    return res.status(400).json({ Error });
   }
   if (password == undefined) {
     Error = "password name filed is required";
-    return res.status(400).send({ Error });
+    return res.status(400).json({ Error });
   }
 
   if (
     [userName, fullname, email, password].some((field) => field.trim() === "")
   ) {
-    return res.status(400).send({
+    return res.status(400).json({
       message: "All fields are required",
     });
   }
@@ -51,16 +51,32 @@ const registerUser = asyncHandler(async (req, res) => {
   const checkUserExist = await User.findOne({ $or: [{ userName }, { email }] });
 
   if (checkUserExist) {
-    return res.status(400).send({
+    return res.status(400).json({
       message: "User is allready exist",
     });
   }
 
-  const avatarLocalPath = req.files?.avatar[0]?.path;
-  const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+  let coverImageLocalPath;
+  if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+    coverImageLocalPath = req.files.coverImage[0].path
+  }
+
+
+  // const avatarLocalPath = req.files?.avatar[0]?.path;
+
+  let avatarLocalPath;
+
+  if (req.files && Array.isArray(req.files.avatar) && req.files.avatar.length > 0) {
+    avatarLocalPath = req.files.avatar[0].path
+  }
+
+  console.log("avatarLocalPath===>", avatarLocalPath)
+
+
 
   if (!avatarLocalPath) {
-    return res.status(400).send({
+    return res.status(400).json({
       message: "This is an error!!",
     });
   }
@@ -70,7 +86,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // check becouse if any chance image is not uplaoded
   if (!avatar) {
-    return res.status(400).send({
+    return res.status(400).json({
       message: "This is an error!",
     });
     // throw new ApiError("409", "avtar  field is required");
@@ -90,7 +106,7 @@ const registerUser = asyncHandler(async (req, res) => {
   );
 
   if (!createdUser) {
-    return res.status(400).send({
+    return res.status(400).json({
       message: "This is an error!",
     });
   }
@@ -118,14 +134,14 @@ const login = asyncHandler(async (req, res) => {
 
 
   if (!userName && !email) {
-    return res.status(400).send({
+    return res.status(400).json({
       message: "email or user name  is required",
     });
   }
 
   const user = await User.findOne({
-    $or: [{userName}, {email}]
-})
+    $or: [{ userName }, { email }]
+  })
 
 
 
@@ -140,9 +156,8 @@ const login = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Invalid email or Password" });
   }
 
-  const { accessToken, refreshToken } =await genrateAccessAndRefreshToken(user._id);
+  const { accessToken, refreshToken } = await genrateAccessAndRefreshToken(user._id);
 
-  console.log("ispassword===accessToken===>", accessToken,refreshToken);
 
 
   // send the response to the user
@@ -194,7 +209,13 @@ const logout = asyncHandler(async (req, res) => {
     .status(200)
     .clearCookie("accessToken", options)
     .clearCookie("refreshToken", options)
-    .json(200, {}, "Logout successfully");
+    .json(   new ApiResponse(
+      200,
+      {
+     
+      },
+      "User Loged out successfully",
+    ),);
 });
 
 export { registerUser, login, logout };

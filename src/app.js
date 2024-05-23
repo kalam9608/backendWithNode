@@ -10,8 +10,8 @@ app.use(cors({
     credentials:true
 }))
 
-app.use(exporess.json({limit:"16kb"}))
-app.use(exporess.urlencoded({extended:true,limit:"16kb"}))
+app.use(exporess.json({limit:"16kb"}))  //req body or form data 
+app.use(exporess.urlencoded({extended:true,limit:"16kb"}))  // seaerch 
 app.use(exporess.static("public"))
 app.use(cookieParser())
 

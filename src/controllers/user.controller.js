@@ -251,10 +251,75 @@ const refresAccessToken = asyncHandler(async (req, res) => {
   };
 
   return res.status(200)
-  .cookie("accesToken", accessToken, options)
-  .cookie("accesToken", accessToken, options)
-  .json(new ApiResponse(200, { accessToken, refreshToken }, "access token refreshed"))
+    .cookie("accesToken", accessToken, options)
+    .cookie("accesToken", accessToken, options)
+    .json(new ApiResponse(200, { accessToken, refreshToken }, "access token refreshed"))
 
 })
 
-export { registerUser, login, logout,refresAccessToken };
+const changeCurrentPasswod = asyncHandler(async (req, res) => {
+
+  const { oldPassword, newPassword } = req.body;
+
+  const user = await User.findById(req.user?._id);
+
+  const isPasswordCorrect = await user.isPasswordCorect(oldPassword);
+
+  if (!isPasswordCorrect) {
+    return res.status(400).json({ message: "invalid old password" })
+  }
+
+  user.password = newPassword
+  await user.save({ validateBeforeSave: false })
+
+  return res.status(200).json(new ApiResponse(200, {}, "password changed"))
+
+})
+
+const currentUser = async (req, res) => {
+  return res.status(200).json(new ApiResponse(200, req.user, "current user fethched"))
+}
+
+const updateAccount = asyncHandler(async (req, res) => {
+  const { userName, fullname, email } = req.body
+
+
+  if (!userName || !fullname || !email) {
+    return res.status(200).json({ message: "all fileds are required" })
+  }
+
+  const user = await User.findByIdAndUpdate(req.user?._id, {
+    $set: {
+      fullname,
+      email: email,
+      userName
+    }
+  }, { new: true }).select("-password")
+
+  return res.status(200).json(new ApiResponse(200, user, "account details updaed"))
+})
+
+const userAvatar = asyncHandler(async (req, res) => {
+
+  const avatarLocalPath = req.file?.path;
+
+  if (!avatarLocalPath) {
+    res.status(400).json({ message: "avatar file is missing" })
+  }
+
+  const avatar = await uploadFileCloudinary(avatarLocalPath)
+
+  if (!avatar) {
+    res.status(400).json({ message: "avatar file is missing" })
+  }
+
+  const user = await User.findOneAndUpdate(req.user?._id, {
+    $set: {
+      avatar: avatar?.url
+    }
+  }, { new: true })
+
+  return res.status(200).json(new ApiResponse(200, user, "avatar image updated successfully"))
+})
+
+export { registerUser, login, logout, refresAccessToken, changeCurrentPasswod, currentUser, updateAccount };

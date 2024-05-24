@@ -3,7 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.models.js";
 import { uploadFileCloudinary } from "../utils/cloudinary.js";
 import { ErrorApi } from "../utils/ErrorApi.js";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 
 const genrateAccessAndRefreshToken = async (userId) => {
   try {
@@ -57,24 +57,28 @@ const registerUser = asyncHandler(async (req, res) => {
     });
   }
 
-
   let coverImageLocalPath;
-  if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
-    coverImageLocalPath = req.files.coverImage[0].path
+  if (
+    req.files &&
+    Array.isArray(req.files.coverImage) &&
+    req.files.coverImage.length > 0
+  ) {
+    coverImageLocalPath = req.files.coverImage[0].path;
   }
-
 
   // const avatarLocalPath = req.files?.avatar[0]?.path;
 
   let avatarLocalPath;
 
-  if (req.files && Array.isArray(req.files.avatar) && req.files.avatar.length > 0) {
-    avatarLocalPath = req.files.avatar[0].path
+  if (
+    req.files &&
+    Array.isArray(req.files.avatar) &&
+    req.files.avatar.length > 0
+  ) {
+    avatarLocalPath = req.files.avatar[0].path;
   }
 
-  console.log("avatarLocalPath===>", avatarLocalPath)
-
-
+  console.log("avatarLocalPath===>", avatarLocalPath);
 
   if (!avatarLocalPath) {
     return res.status(400).json({
@@ -133,7 +137,6 @@ const login = asyncHandler(async (req, res) => {
   //   });
   // }
 
-
   if (!userName && !email) {
     return res.status(400).json({
       message: "email or user name  is required",
@@ -141,10 +144,8 @@ const login = asyncHandler(async (req, res) => {
   }
 
   const user = await User.findOne({
-    $or: [{ userName }, { email }]
-  })
-
-
+    $or: [{ userName }, { email }],
+  });
 
   if (!user) {
     return res.status(400).json({ message: "User is not register" });
@@ -152,14 +153,13 @@ const login = asyncHandler(async (req, res) => {
 
   const isPassword = await user.isPasswordCorect(password);
 
-
   if (!isPassword) {
     return res.status(400).json({ message: "Invalid email or Password" });
   }
 
-  const { accessToken, refreshToken } = await genrateAccessAndRefreshToken(user._id);
-
-
+  const { accessToken, refreshToken } = await genrateAccessAndRefreshToken(
+    user._id,
+  );
 
   // send the response to the user
   const logedInUser = await User.findById(user._id).select(
@@ -210,61 +210,60 @@ const logout = asyncHandler(async (req, res) => {
     .status(200)
     .clearCookie("accessToken", options)
     .clearCookie("refreshToken", options)
-    .json(new ApiResponse(
-      200,
-      {
-
-      },
-      "User Loged out successfully",
-    ),);
+    .json(new ApiResponse(200, {}, "User Loged out successfully"));
 });
 
 const refresAccessToken = asyncHandler(async (req, res) => {
-
   const userRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
   if (!userRefreshToken) {
-    return res.status(401).json({ message: "unothorised token" })
-
+    return res.status(401).json({ message: "unothorised token" });
   }
 
-  const decodToken = jwt.verify(userRefreshToken, process.env.REFRESH_TOKEN_SECRET)
+  const decodToken = jwt.verify(
+    userRefreshToken,
+    process.env.REFRESH_TOKEN_SECRET,
+  );
 
-  const user = await User.findById(decodToken?._id) //_id we are genrating the refresh token paasing the user id user.model
+  const user = await User.findById(decodToken?._id); //_id we are genrating the refresh token paasing the user id user.model
 
   if (!user) {
-    return res.status(401).json({ message: "invalid refresh token" })
-
+    return res.status(401).json({ message: "invalid refresh token" });
   }
 
   // console.log("re====>",userRefreshToken,"<===>",user.refreshToken)
 
   if (userRefreshToken !== user.refreshToken) {
-    return res.status(401).json({ message: "rerfresh token is expired" })
-
+    return res.status(401).json({ message: "rerfresh token is expired" });
   }
 
-  const { accessToken, refreshToken } = await genrateAccessAndRefreshToken(user?._id)
+  const { accessToken, refreshToken } = await genrateAccessAndRefreshToken(
+    user?._id,
+  );
   const options = {
     httpOnly: true,
     secure: true,
   };
 
-  return res.status(200)
+  return res
+    .status(200)
     .cookie("accesToken", accessToken, options)
     .cookie("accesToken", accessToken, options)
-    .json(new ApiResponse(200, { accessToken, refreshToken }, "access token refreshed"))
-
-})
+    .json(
+      new ApiResponse(
+        200,
+        { accessToken, refreshToken },
+        "access token refreshed",
+      ),
+    );
+});
 
 const changeCurrentPasswod = asyncHandler(async (req, res) => {
-
   const { oldPassword, newPassword } = req.body;
-  console.log(oldPassword)
+  console.log(oldPassword);
 
   if (!(oldPassword && newPassword)) {
-    return res.status(400).json({ message: "all filed required" })
-
+    return res.status(400).json({ message: "all filed required" });
   }
 
   const user = await User.findById(req.user?._id);
@@ -272,68 +271,87 @@ const changeCurrentPasswod = asyncHandler(async (req, res) => {
   const isPasswordCorrect = await user.isPasswordCorect(oldPassword);
 
   if (!isPasswordCorrect) {
-    return res.status(400).json({ message: "invalid old password" })
+    return res.status(400).json({ message: "invalid old password" });
   }
 
-  user.password = newPassword
-  await user.save({ validateBeforeSave: false })
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
 
-  return res.status(200).json(new ApiResponse(200, {}, "password changed"))
-
-})
+  return res.status(200).json(new ApiResponse(200, {}, "password changed"));
+});
 
 const currentUser = async (req, res) => {
-  return res.status(200).json(new ApiResponse(200, req.user, "current user fethched"))
-}
+  return res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "current user fethched"));
+};
 
 const updateAccount = asyncHandler(async (req, res) => {
-  const { userName, fullname, email } = req.body
-
+  const { userName, fullname, email } = req.body;
 
   if (!userName || !fullname || !email) {
-    return res.status(200).json({ message: "all fileds are required" })
+    return res.status(200).json({ message: "all fileds are required" });
   }
-  let user
+  let user;
 
   try {
-    user = await User.findByIdAndUpdate(req.user?._id, {
-      $set: {
-        fullname:fullname,
-        email: email,
-        userName:userName
-      }
-    }, { new: true })
+    user = await User.findByIdAndUpdate(
+      req.user?._id,
+      {
+        $set: {
+          fullname: fullname,
+          email: email,
+          userName: userName,
+        },
+      },
+      { new: true },
+    );
   } catch (error) {
     console.log(error);
   }
 
-  console.log("user=====>",user)
+  console.log("user=====>", user);
 
-
-  return res.status(200).json(new ApiResponse(200, user, "account details updaed"))
-})
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "account details updaed"));
+});
 
 const userAvatar = asyncHandler(async (req, res) => {
-
   const avatarLocalPath = req.file?.path;
 
   if (!avatarLocalPath) {
-    res.status(400).json({ message: "avatar file is missing" })
+    res.status(400).json({ message: "avatar file is missing" });
   }
 
-  const avatar = await uploadFileCloudinary(avatarLocalPath)
+  const avatar = await uploadFileCloudinary(avatarLocalPath);
 
   if (!avatar) {
-    res.status(400).json({ message: "avatar file is missing" })
+    res.status(400).json({ message: "avatar file is missing" });
   }
 
-  const user = await User.findOneAndUpdate(req.user?._id, {
-    $set: {
-      avatar: avatar?.url
-    }
-  }, { new: true })
+  const user = await User.findOneAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        avatar: avatar?.url,
+      },
+    },
+    { new: true },
+  );
 
-  return res.status(200).json(new ApiResponse(200, user, "avatar image updated successfully"))
-})
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "avatar image updated successfully"));
+});
 
-export { registerUser, login, logout, refresAccessToken, changeCurrentPasswod, currentUser, updateAccount };
+export {
+  registerUser,
+  login,
+  logout,
+  refresAccessToken,
+  changeCurrentPasswod,
+  currentUser,
+  updateAccount,
+  userAvatar,
+};

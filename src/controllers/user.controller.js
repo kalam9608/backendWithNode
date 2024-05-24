@@ -293,14 +293,22 @@ const updateAccount = asyncHandler(async (req, res) => {
   if (!userName || !fullname || !email) {
     return res.status(200).json({ message: "all fileds are required" })
   }
+  let user
 
-  const user = await User.findByIdAndUpdate(req.user?._id, {
-    $set: {
-      fullname,
-      email: email,
-      userName
-    }
-  }, { new: true }).select("-password")
+  try {
+    user = await User.findByIdAndUpdate(req.user?._id, {
+      $set: {
+        fullname:fullname,
+        email: email,
+        userName:userName
+      }
+    }, { new: true })
+  } catch (error) {
+    console.log(error);
+  }
+
+  console.log("user=====>",user)
+
 
   return res.status(200).json(new ApiResponse(200, user, "account details updaed"))
 })

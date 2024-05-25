@@ -318,13 +318,15 @@ const updateAccount = asyncHandler(async (req, res) => {
 });
 
 const userAvatar = asyncHandler(async (req, res) => {
-  const avatarLocalPath = req.file?.path;
+  const avatarLocalPath = req.files?.avatar[0]?.path;
+
+  console.log("av----->",avatarLocalPath)
 
   if (!avatarLocalPath) {
     res.status(400).json({ message: "avatar file is missing" });
   }
 
-  const avatar = await uploadFileCloudinary(avatarLocalPath);
+  const avatar = await uploadFileCloudinary(avatarLocalPath?.url);
 
   if (!avatar) {
     res.status(400).json({ message: "avatar file is missing" });

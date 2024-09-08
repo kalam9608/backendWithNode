@@ -13,7 +13,9 @@ const uploadFileCloudinary = async (filepath) => {
 
         //uplaod file to cloudinary 
 
+        
         const response = await cloudinary.uploader.upload(filepath, { resource_type: "auto" })
+        // console.log("fieleddd===>",response)
 
         // console.log("file uplaod in successfully")
 
@@ -23,6 +25,7 @@ const uploadFileCloudinary = async (filepath) => {
     } catch (error) {
         fs.unlinkSync(filepath) // removed the loacal save temprory filed uplaod file got failed
         console.log("error===>", error)
+        throw error
     }
 }
 

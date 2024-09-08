@@ -27,12 +27,14 @@ router.route("/refresh-token").post(refresAccessToken);
 router.route("/change-password").post(verifyJWT, changeCurrentPasswod)
 router.route("/current-user").get(verifyJWT, currentUser);
 router.route("/update-user").post(verifyJWT, updateAccount);
-router.route("/change-avatar").post(  upload.fields([
-  {
-    name: "avatar",
-    maxCount: 1,
-  },
-]), userAvatar);
+// router.route("/change-avatar").post(  upload.fields([
+//   {
+//     name: "avatar",
+//     maxCount: 1,
+//   },
+// ]), userAvatar);
+
+router.route("/change-avatar").post(  upload.single("avatar"), userAvatar);
 
 
 export default router;

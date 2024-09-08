@@ -318,7 +318,11 @@ const updateAccount = asyncHandler(async (req, res) => {
 });
 
 const userAvatar = asyncHandler(async (req, res) => {
+  // const avatarLocalPath = req?.files.avatar[0].path;
+
   const avatarLocalPath = req.file?.path;
+  
+  console.log("avatar----->",avatarLocalPath)
 
   if (!avatarLocalPath) {
     res.status(400).json({ message: "avatar file is missing" });
